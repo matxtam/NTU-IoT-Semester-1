@@ -4,8 +4,8 @@ from time import sleep
 import json
 
 AllowedActions = ['both', 'publish', 'subscribe']
-broker = "192.168.50.43"
-port = 30916
+broker = "your broker ip" # [To Do]
+port = # your broker port # [To Do]
 clientId = "myRPi"
 topic = "RPi/PM25"
 mode = "publish"
