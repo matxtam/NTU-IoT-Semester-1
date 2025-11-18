@@ -7,7 +7,7 @@ def on_message(client, userdata, message):
     time.sleep(1)
     print("received message = ", str(message.payload.decode("utf8")))
 
-client = paho.Client("client_vm")
+client = paho.Client(client_id = "client_vm", callback_api_version=1)
 client.on_message = on_message
 print("connect to broker",broker)
 client.connect(broker,port)
