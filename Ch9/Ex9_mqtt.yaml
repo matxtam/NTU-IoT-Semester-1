@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: default
+  name: mosquitto-svc
+  labels:
+    service: mosquitto-service
+spec:
+  selector:
+    app: mosquitto-pod
+  type: NodePort
+  ports:
+  - name: port1
+    port: 1883
+  - name: port2
+    port: 9001
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: mosquitto-pod
+spec:
+  selector:
+    matchLabels:
+      app: mosquitto-pod
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mosquitto-pod
+    spec:
+      containers:
+      - name: mosquitto-pod
+        image: toke/mosquitto
+        ports:
+        - containerPort: 1883
+        - containerPort: 9001

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: team1
+  name: apache-pod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: http-pod
+  template:
+    metadata:
+      labels:
+        service: http-pod
+    spec:
+      containers:
+      - name: apache-pod
+        image: francois/apache-hostname
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+      - name: grafana-pod
+        image: grafana/grafana
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: team1
+  name: team-1-svc-1
+  labels:
+    service: http-service
+spec:
+  selector:
+    service: http-pod
+  type: NodePort
+  ports: 
+  - name: http
+    port: 80
+  - name: grafana
+    port: 3000
