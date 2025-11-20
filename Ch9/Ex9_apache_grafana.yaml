@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: team1
+  namespace: default
   name: apache-pod
 spec:
   replicas: 1
@@ -29,7 +29,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: team1
+  namespace: default
   name: team-1-svc-1
   labels:
     service: http-service
