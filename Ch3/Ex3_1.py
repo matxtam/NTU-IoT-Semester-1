@@ -6,6 +6,7 @@ import threading
 import time
 from queue import Queue
 
+### Receive readings of photo interrupter
 class RxThread(threading.Thread):
     def __init__(self, ser, queue):
         threading.Thread.__init__(self)
@@ -20,37 +21,27 @@ class RxThread(threading.Thread):
     def run(self):
         freq = 0
         tStart = time.time()
-        while True:
-            while self.ser.inWaiting():
+        while self._running:
+            while self._running and self.ser.inWaiting():
+                ## read from the serial port
+                sig = ""
                 try:
                     sig = self.ser.readline().decode('utf8')[:-2]
                 except:
                     pass
-                # print(sig)
-                if (sig != '0' and sig != '1') or (self.sig_temp != '0' and self.sig_temp != '1'):
-                    pass
-                elif sig != self.sig_temp:
+                
+                # if signal changed from 0 to 1, count++ 
+                if self.sig_temp == '0' and sig == '1':
                     self.count+=1
-                    # print(self.count)
-                    # print("not equal")
-                    # print("sig = %s" %(sig))
-                    # print("previous sig = %s" %(self.sig_temp))
+                
+                ## Timing setups
                 tEnd = time.time()
                 self.period = float(tEnd - tStart)
-                # freq = self.count/self.period
-                # self.freq.put(freq)
-                # self.count = 0
-                # tStart = time.time()
-                # print('period is %f' % self.period)
-                if self.period > 0.3:
-                    # print('period is %f' % self.period)
-                    freq = (self.count/4)/self.period
+                if self.period > 0.3: # resets every 0.3 seconds
+                    freq = (self.count/2)/self.period
                     self.freq.put(freq)
-                    # print(self.count)
                     self.count = 0
                     tStart = time.time()
-                # print('freq is %f' % freq)
-                # print('put queue size:',self.freq.qsize())
                 self.sig_temp = sig
                 
     def resume(self):
@@ -58,7 +49,9 @@ class RxThread(threading.Thread):
         
     def stop(self):
         self._running = False
+        self.ser.close()
 
+### Transmit pwm of motor
 class TxThread(threading.Thread):
     def __init__(self, ser, queue):
         threading.Thread.__init__(self)
@@ -70,18 +63,16 @@ class TxThread(threading.Thread):
         
     def run(self):
         pwm = 0
-        while True:
+        while self._running:
+            ## print the frequency
             if not self.freq.empty():
                 self.freq_now = self.freq.get() 
-                
                 sys.stdout.flush()
-                # sys.stdout.write('\r{:^10} {:^10}'.format('target','current'))
                 sys.stdout.write("\r{:^10} {:^10}".format(self.freq_target,round(self.freq_now,2)))
-                # print('get queue size:',self.freq_quene.qsize())
             else:
                 pass
-            # print('target frequency: %f' % self.freq_target)
-            # print('current frequency: %f' % self.freq_now)
+
+            ## pwm +- 1 to match target frequency
             if self.freq_target - self.freq_now > 1:
                 if pwm < 255:
                     pwm += 1
@@ -96,7 +87,6 @@ class TxThread(threading.Thread):
                 time.sleep(0.1)
             else:
                 pass
-            # print(pwm)
 
     def resume(self):
         self._running = True
@@ -109,8 +99,14 @@ def main():
     print('input rps or q for quit: ')
     print('{:^10} {:^10} {:^10}'.format('target','current','input'))
     ser = serial.Serial('/dev/ttyACM0', 9600, timeout= 0.5 ) #RPi serial port
-    # ser = serial.Serial('COM7', 9600, timeout= 0.5 )
+    
+    ### frequency data queue
+    # frequency is calculated from the reading of photo-interrupter (RX thread),
+    # and is used to tune pwm commands to the fan (TX thread)
     queue = Queue()
+
+    ### Communication with Arduino Uno
+    # use thread for simultaneous work
     rx = RxThread(ser, queue)
     tx = TxThread(ser, queue)
     rx.start()
@@ -118,21 +114,17 @@ def main():
     
 
     while True:
-        # input_temp = input('\rinput rps or q for quit: ')
         input_temp = input()
         
-        # print(rx.freq)
         if input_temp == 'q':
             rx.stop()
             tx.stop()
             ser.close()
             break
         try:
-            # print(rx.freq)
             tx.freq_target = float(input_temp)
-            # tx.freq_now = float(rx.freq)
         except:
-            pass
+            break
 
 if __name__=='__main__':
     main()
