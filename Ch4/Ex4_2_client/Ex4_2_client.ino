@@ -12,13 +12,14 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT); // RH_RF95 rf95(10, 2); // Dragino with RFM95
 // Change to 434.0 or other frequency, must match RX's freq!
-#define RF95_FREQ 915.0    //頻率915.0MHz
+// #define RF95_FREQ 915.0    //頻率915.0MHz //何意味
 
 int counter=0;
-// SHARP GP2Y1010AU0F 使用測試代碼: 
-//  　依使用說明最後四Pin (　紅　黑　白　藍)
-// 　白 Pin　接 Arduino digital Pin ==>D7   註: D2與Dragino Lora Shield相沖
-//     藍 Pin　接 Arduino analog Pin ==>A0
+// SHARP GP2Y1010AU0F : 
+// 　第三條　接 Arduino digital Pin ==>D7   註: D2與Dragino Lora Shield相沖
+//   第五條　接 Arduino analog Pin ==>A0
+
+// LCD 螢幕(目前不使用)
 // I2C LED   與 Arduino ADK MEGA接線
 // SDA to pin 20 SDA (Lilypad A4)
 // CLK to pin 21 CLK (Lilypad A5)
