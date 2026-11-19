@@ -9,14 +9,13 @@ import json
 
 import random, string
 random_key = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(10))
+
 TIMEOUT = 100
-message_count = 5
-message_topic = "rpi_TA/PM25"
-message_string = "PM25"
-endpoint = "a5g6maunbut70-ats.iot.ap-southeast-2.amazonaws.com"
-clientId = "rpi_TA"
-cert_path = "rpi_TA.cert.pem"
-private_key_path = "rpi_TA.private.key"
+message_topic = "your_rpi_name/PM25"
+endpoint = "your_host"
+clientId = "your_rpi_name"
+cert_path = "path/to/your_rpi_name.cert.pem"
+private_key_path = "path/to/your_rpi_name.private.key"
 
 # Events used within callbacks to progress sample
 connection_success_event = threading.Event()
@@ -30,13 +29,6 @@ def on_publish_received(publish_packet_data):
     publish_packet = publish_packet_data.publish_packet
     print("==== Received message from topic '{}': {} ====\n".format(
         publish_packet.topic, publish_packet.payload.decode('utf-8')))
-
-    # Track number of publishes received
-    global received_count
-    received_count += 1
-    if received_count == message_count:
-        received_all_event.set()
-
 
 # Callback for the lifecycle event Stopped
 def on_lifecycle_stopped(lifecycle_stopped_data: mqtt5.LifecycleStoppedData):
